@@ -4,6 +4,15 @@ Supports Lexical Scanning, LL(1) Parsing (Grammar, FIRST/FOLLOW, Parse Table, CS
 TAC IR Generation, and Step Execution Tracing.
 """
 
+import sys
+import os
+
+# Ensure project root is in sys.path for serverless and WSGI environments
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 
@@ -14,9 +23,6 @@ from backend.ir.generator import TACGenerator
 from backend.executor.interpreter import StepInterpreter
 from backend.errors.compiler_errors import CompilerError
 
-import os
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 template_dir = os.path.abspath(os.path.join(BASE_DIR, '../templates'))
 static_dir = os.path.abspath(os.path.join(BASE_DIR, '../static'))
 
@@ -154,7 +160,8 @@ def count_cst_nodes(node):
     if not node:
         return 0
     cnt = 1
-    for child in getattr(node, 'children', []):
+    children = node.get('children', []) if isinstance(node, dict) else getattr(node, 'children', [])
+    for child in children:
         cnt += count_cst_nodes(child)
     return cnt
 
@@ -163,7 +170,8 @@ def count_ast_nodes(node):
     if not node:
         return 0
     cnt = 1
-    for child in getattr(node, 'children', []):
+    children = node.get('children', []) if isinstance(node, dict) else getattr(node, 'children', [])
+    for child in children:
         cnt += count_ast_nodes(child)
     return cnt
 
