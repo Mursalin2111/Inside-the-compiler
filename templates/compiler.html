@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compiler Laboratory Studio — Inside the Compiler</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- SVG D3 / SVG pan-zoom support or custom lightweight SVG tree engine -->
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon">⚡</div>
+            <span>Inside the Compiler</span>
+            <span class="brand-tag">Virtual Lab</span>
+        </a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/" class="btn btn-secondary btn-sm">← Back to Home</a>
+        </div>
+    </nav>
+
+    <!-- Lab Studio Container -->
+    <div class="lab-container">
+        
+        <!-- Header Stepper Bar -->
+        <div class="stepper-bar">
+            <div class="stepper-pipeline" id="stepperPipeline">
+                <div class="stage-pill active" data-stage="1" id="pill-1">
+                    <span class="stage-num">1</span>
+                    <span>SOURCE</span>
+                </div>
+                <div class="stage-pill" data-stage="2" id="pill-2">
+                    <span class="stage-num">2</span>
+                    <span>LEXER</span>
+                </div>
+                <div class="stage-pill" data-stage="3" id="pill-3">
+                    <span class="stage-num">3</span>
+                    <span>TOKENS</span>
+                </div>
+                <div class="stage-pill" data-stage="4" id="pill-4">
+                    <span class="stage-num">4</span>
+                    <span>PARSER</span>
+                </div>
+                <div class="stage-pill" data-stage="5" id="pill-5">
+                    <span class="stage-num">5</span>
+                    <span>AST</span>
+                </div>
+                <div class="stage-pill" data-stage="6" id="pill-6">
+                    <span class="stage-num">6</span>
+                    <span>IR (TAC)</span>
+                </div>
+                <div class="stage-pill" data-stage="7" id="pill-7">
+                    <span class="stage-num">7</span>
+                    <span>EXECUTION</span>
+                </div>
+            </div>
+
+            <div class="stepper-nav">
+                <button class="btn btn-secondary btn-sm" id="btnPrevStage" disabled>← Previous Stage</button>
+                <span class="stage-indicator" id="stageIndicator">Stage 1 / 7</span>
+                <button class="btn btn-secondary btn-sm" id="btnNextStage">Next Stage →</button>
+            </div>
+        </div>
+
+        <!-- Main Workspace Split Grid -->
+        <div class="workspace-grid">
+            
+            <!-- Left Pane: Code Editor -->
+            <div class="editor-pane">
+                <div class="editor-header">
+                    <div class="select-wrapper">
+                        <select id="presetSelect" class="preset-select">
+                            <option value="example1">Example 1 — Basic Arithmetic</option>
+                            <option value="example2">Example 2 — Operator Precedence</option>
+                            <option value="example3">Example 3 — Parentheses Grouping</option>
+                            <option value="example4">Example 4 — Conditional (If-Else)</option>
+                            <option value="example5">Example 5 — Syntax Error Demo</option>
+                            <option value="example6">Example 6 — Undefined Variable</option>
+                            <option value="example7">Example 7 — Division by Zero</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="btnCompile">
+                        <span>▶ Run Compiler</span>
+                    </button>
+                </div>
+
+                <div class="editor-body">
+                    <div class="line-numbers" id="lineNumbers">1</div>
+                    <textarea id="codeEditor" class="code-textarea" spellcheck="false" placeholder="Enter your C-like source code here..."></textarea>
+                </div>
+
+                <div class="editor-footer">
+                    <span id="editorMetrics">Lines: 3 | Characters: 42</span>
+                    <span>C-like Subset Language</span>
+                </div>
+            </div>
+
+            <!-- Right Pane: Stage Visualizers -->
+            <div class="visualizer-pane">
+                <div class="vis-header">
+                    <div class="vis-title">
+                        <span id="visIcon">📝</span>
+                        <span id="visTitle">Source Code Overview</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="visSubtitle">
+                        Stage 1 of 7
+                    </div>
+                </div>
+
+                <div class="vis-content" id="visContent">
+                    <!-- Error Alert Overlay -->
+                    <div class="error-alert" id="errorAlert">
+                        <div class="error-title" id="errorTitle">Syntax Error</div>
+                        <div id="errorMessage" style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem;">Line 1, Column 11</div>
+                        <div id="errorHint" style="font-size: 0.85rem; color: var(--text-secondary);">Hint: Check for missing semicolon.</div>
+                    </div>
+
+                    <!-- Stage 1 View: Source -->
+                    <div class="stage-view" id="viewStage1">
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                            <h3 style="font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 0.75rem;">Source Code Input</h3>
+                            <pre id="sourcePreview" style="font-family: var(--font-code); font-size: 0.95rem; color: var(--text-primary); background: var(--bg-editor); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></pre>
+                            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-blue);" id="statLines">0</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Source Lines</div>
+                                </div>
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-green);" id="statChars">0</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Characters</div>
+                                </div>
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-purple);" id="statStatus">Ready</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Status</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 2 View: Lexer & Tokens -->
+                    <div class="stage-view" id="viewStage2" style="display: none;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Interactive Token Table (Click any row to highlight source code)</h4>
+                        <div class="token-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Lexeme</th>
+                                        <th>Token Type</th>
+                                        <th>Line:Col</th>
+                                        <th>Explanation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tokenTableBody">
+                                    <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Run compiler to view tokens</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Stage 3 View: Parser Derivation -->
+                    <div class="stage-view" id="viewStage3" style="display: none;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Recursive Descent Derivation Steps</h4>
+                                <div id="parseStepsList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 420px; overflow-y: auto;"></div>
+                            </div>
+                            <div>
+                                <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Language EBNF Grammar</h4>
+                                <pre style="font-family: var(--font-code); font-size: 0.82rem; color: #a5b4fc; background: var(--bg-editor); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); max-height: 420px; overflow-y: auto;">
+Program              → Statement* EOF
+Statement            → VarDecl │ Assign │ IfStmt
+VarDecl              → Type ID ("=" Expr)? ";"
+Assign               → ID "=" Expr ";"
+IfStmt               → "if" "(" Expr ")" (Block │ Stmt) ("else" ...)?
+Expr                 → EqualityExpr
+EqualityExpr         → RelationalExpr (("==" │ "!=") RelationalerExpr)*
+RelationalExpr       → AdditiveExpr ((">" │ "<" │ ">=" │ "<=") AdditiveExpr)*
+AdditiveExpr         → MultiplicativeExpr (("+" │ "-") MultiplicativeExpr)*
+MultiplicativeExpr   → PrimaryExpr (("*" │ "/") PrimaryExpr)*
+PrimaryExpr          → NUMBER │ IDENTIFIER │ "(" Expr ")"
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 4 View: LL(1) Interactive Parsing Studio -->
+                    <div class="stage-view" id="viewStage4" style="display: none; height: 100%;">
+                        <!-- Sub-tab Navigation Bar -->
+                        <div class="subtab-bar">
+                            <button class="subtab-btn active" id="subtabBtn1" data-target="parseSubView1">📜 EBNF Grammar & FIRST/FOLLOW</button>
+                            <button class="subtab-btn" id="subtabBtn2" data-target="parseSubView2">📊 LL(1) Parse Table M[A, a]</button>
+                            <button class="subtab-btn" id="subtabBtn3" data-target="parseSubView3">🥞 Pushdown Stack Debugger</button>
+                            <button class="subtab-btn" id="subtabBtn4" data-target="parseSubView4">🌳 Concrete Parse Tree (CST)</button>
+                        </div>
+
+                        <!-- Sub-View 1: Grammar & FIRST/FOLLOW Sets -->
+                        <div class="parse-subview" id="parseSubView1">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <h4 style="font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">EBNF Language Grammar</h4>
+                                    <div id="ebnfGrammarList"></div>
+                                </div>
+                                <div>
+                                    <h4 style="font-size: 0.9rem; color: var(--accent-green); margin-bottom: 0.5rem;">FIRST Sets</h4>
+                                    <div id="firstSetsList"></div>
+                                </div>
+                                <div>
+                                    <h4 style="font-size: 0.9rem; color: var(--accent-purple); margin-bottom: 0.5rem;">FOLLOW Sets</h4>
+                                    <div id="followSetsList"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-View 2: LL(1) Interactive Parse Table M[A, a] -->
+                        <div class="parse-subview" id="parseSubView2" style="display: none;">
+                            <h4 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Interactive 2D Parse Table M[NonTerminal, Terminal] (Click any cell to inspect)</h4>
+                            <div id="ll1TableGrid"></div>
+                            <div id="cellInspector"></div>
+                        </div>
+
+                        <!-- Sub-View 3: Pushdown Stack Debugger -->
+                        <div class="parse-subview" id="parseSubView3" style="display: none;">
+                            <div class="exec-controls" style="margin-bottom: 1rem;">
+                                <div class="control-btn-group">
+                                    <button class="btn btn-primary btn-sm" id="btnParsePlay">▶ Play</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnParsePause" style="display: none;">⏸ Pause</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnParsePrev">⏮ Prev</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnParseNext">⏭ Next Step</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnParseReset">↻ Reset</button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                                    <span style="color: var(--text-muted);">Speed:</span>
+                                    <input type="range" id="parseSpeed" min="200" max="1500" value="700" style="width: 90px;">
+                                    <span id="parseStepCounter" style="font-weight: 700; color: var(--accent-cyan); margin-left: 0.5rem;">Step 0 / 0</span>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem;">
+                                    <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Pushdown Stack</h4>
+                                    <div id="parseStackDisplay" style="min-height: 45px; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; background: var(--bg-editor); padding: 0.75rem; border-radius: 8px;"></div>
+                                    
+                                    <h4 style="font-size: 0.85rem; color: var(--text-muted); margin: 0.75rem 0 0.4rem;">Input Token Buffer</h4>
+                                    <div id="parseInputDisplay" style="min-height: 45px; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; background: var(--bg-editor); padding: 0.75rem; border-radius: 8px;"></div>
+                                </div>
+
+                                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">Lookahead Token:</span>
+                                        <strong style="color: var(--accent-green); font-size: 1.1rem; margin-left: 0.5rem;" id="parseLookaheadDisplay">—</strong>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 1.5rem;">Table Cell:</span>
+                                        <strong style="color: var(--accent-cyan); font-size: 1rem; margin-left: 0.5rem;" id="parseCellDisplay">M[—, —]</strong>
+                                    </div>
+
+                                    <div>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">Current Parser Action:</span>
+                                        <div id="parseActionDisplay" style="font-family: var(--font-code); font-size: 1rem; font-weight: 700; color: var(--accent-cyan); margin-top: 0.25rem;">
+                                            Click Play or Next Step to begin simulation
+                                        </div>
+                                    </div>
+
+                                    <div id="parseExplanationDisplay" style="font-size: 0.85rem; color: var(--text-secondary); background: var(--bg-editor); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                                        Step explanation will appear here.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-View 4: Concrete Parse Tree (CST) SVG -->
+                        <div class="parse-subview" id="parseSubView4" style="display: none; height: 100%;">
+                            <div class="ast-container" style="height: 380px;">
+                                <div class="ast-controls">
+                                    <button class="btn btn-secondary btn-sm" id="btnCstZoomIn">🔍 +</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnCstZoomOut">🔍 -</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnCstReset">↺ Fit</button>
+                                </div>
+                                <svg id="cstSvg" class="cst-svg">
+                                    <g id="cstGroup"></g>
+                                </svg>
+                            </div>
+                            <div id="cstNodeDetails" style="margin-top: 0.5rem; padding: 0.6rem; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.82rem; display: none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 5 View: Three-Address Code (IR) -->
+                    <div class="stage-view" id="viewStage5" style="display: none;">
+                        <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Generated Three-Address Code (TAC) Quadruples</h4>
+                        <div class="tac-container" id="tacList">
+                            <div style="text-align: center; color: var(--text-muted); padding: 2rem;">Run compiler to generate IR</div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 6 View: Virtual Machine Execution -->
+                    <div class="stage-view" id="viewStage6" style="display: none;">
+                        <div class="execution-panel">
+                            <div class="exec-controls">
+                                <div class="control-btn-group">
+                                    <button class="btn btn-primary btn-sm" id="btnExecPlay">▶ Play</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnExecPause">⏸ Pause</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnExecPrev">⏮ Prev</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnExecNext">⏭ Next Step</button>
+                                    <button class="btn btn-secondary btn-sm" id="btnExecReset">↻ Reset</button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem;">
+                                    <span style="color: var(--text-muted);">Speed:</span>
+                                    <input type="range" id="execSpeed" min="200" max="1500" value="700" style="width: 90px;">
+                                    <span id="execStepCounter" style="font-weight: 700; color: var(--accent-cyan); margin-left: 0.5rem;">Step 0 / 0</span>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                                <div>
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Active Instruction Pointer</h4>
+                                    <div id="execActiveInstruction" style="font-family: var(--font-code); font-size: 1rem; color: var(--accent-cyan); background: var(--bg-editor); padding: 1rem; border-radius: 8px; border: 1px solid var(--accent-blue);">
+                                        Click Play or Next Step to begin execution
+                                    </div>
+                                    <div id="execStepExplanation" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 0.75rem; border-radius: 6px;">
+                                        Step explanation will appear here.
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">Program Environment (Memory)</h4>
+                                    <div class="environment-grid" id="envGrid">
+                                        <div style="color: var(--text-muted); font-size: 0.85rem;">No memory allocated yet.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 7 View: Final Summary -->
+                    <div class="stage-view" id="viewStage7" style="display: none;">
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(56, 239, 125, 0.2); color: var(--success); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">✓</div>
+                                <div>
+                                    <h3 style="font-size: 1.3rem; color: var(--text-primary);">COMPILATION COMPLETE</h3>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">All 7 compilation phases executed successfully</p>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.5rem 0;">
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px;">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Tokens Generated</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-cyan);" id="sumTokens">0</div>
+                                </div>
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px;">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">AST Nodes</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-blue);" id="sumAst">0</div>
+                                </div>
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px;">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">TAC Instructions</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-green);" id="sumTac">0</div>
+                                </div>
+                                <div style="background: var(--bg-card); padding: 1rem; border-radius: 8px;">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Execution Steps</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-purple);" id="sumSteps">0</div>
+                                </div>
+                            </div>
+
+                            <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Final Variable Output:</h4>
+                            <pre id="sumOutput" style="font-family: var(--font-code); font-size: 1.1rem; color: var(--success); background: var(--bg-editor); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);"></pre>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Educational Explanation Panel -->
+                <div class="explanation-card">
+                    <div class="exp-box">
+                        <h4><span>💡</span> What is happening?</h4>
+                        <p id="expWhat">The source code editor allows you to type C-like expressions. Click "Run Compiler" to begin lexical analysis.</p>
+                    </div>
+                    <div class="exp-box">
+                        <h4><span>🎯</span> Why is this step necessary?</h4>
+                        <p id="expWhy">A compiler starts with raw source code text and systematically transforms it into tokens, trees, and lower-level intermediate code before execution.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Frontend Modular JavaScript -->
+    <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tokens.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/first_follow.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/parse_table.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/stack_parser.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/parse_tree.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/parser.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ast.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ir.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/execution.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pipeline.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/explanations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

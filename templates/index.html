@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inside the Compiler: A Step-by-Step Execution Story</title>
+    <meta name="description" content="An interactive educational virtual Compiler Laboratory demonstrating Lexical Analysis, Parsing, AST, TAC IR, and Execution.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <a href="/" class="brand">
+            <div class="brand-icon">⚡</div>
+            <span>Inside the Compiler</span>
+            <span class="brand-tag">Virtual Lab</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/" class="active">Home</a></li>
+            <li><a href="/compiler">Compiler Laboratory</a></li>
+            <li><a href="#pipeline">Pipeline</a></li>
+            <li><a href="#features">Features</a></li>
+        </ul>
+        <div>
+            <a href="/compiler" class="btn btn-primary">Launch Virtual Lab →</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-badge">
+            <span>🔬 University Compiler Design Laboratory</span>
+        </div>
+        <h1 class="hero-title">From Code to Execution — See Every Step.</h1>
+        <p class="hero-subtitle">
+            Don't hide the compiler. Show the compiler thinking. 
+            An interactive educational laboratory designed for Computer Science students 
+            to visually follow how high-level code transforms through every compilation stage.
+        </p>
+        <div class="hero-actions">
+            <a href="/compiler" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-size: 1rem;">
+                🚀 Open Compiler Laboratory
+            </a>
+            <a href="#pipeline" class="btn btn-secondary" style="padding: 0.8rem 1.6rem; font-size: 1rem;">
+                📖 Explore Compilation Pipeline
+            </a>
+        </div>
+    </section>
+
+    <!-- Pipeline Overview Diagram -->
+    <section id="pipeline" style="padding: 2rem 1rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--text-primary);">The 7 Compilation Stages</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Every transformation is generated from real compiler algorithms</p>
+        </div>
+
+        <div class="pipeline-diagram">
+            <div class="pipe-step">
+                <span class="pipe-step-icon">📝</span>
+                <span class="pipe-step-title">1. Source</span>
+            </div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step">
+                <span class="pipe-step-icon">🔍</span>
+                <span class="pipe-step-title">2. Lexer</span>
+            </div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step">
+                <span class="pipe-step-icon">🏷️</span>
+                <span class="pipe-step-title">3. Tokens</span>
+            </div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step">
+                <span class="pipe-step-icon">🌳</span>
+                <span class="pipe-step-title">4. Parser</span>
+            </div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step">
+                <span class="pipe-step-icon">🌴</span>
+                <span class="pipe-step-title">5. AST</span>
+            </div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step">
+                <span class="pipe-step-icon">⚙️</span>
+                <span class="pipe-step-title">6. IR (TAC)</span>
+            </div>
+            <span class="pipe-arrow">→</span>
+            <div class="pipe-step">
+                <span class="pipe-step-icon">▶️</span>
+                <span class="pipe-step-title">7. Execution</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Educational Features Grid -->
+    <section id="features" style="max-width: 1100px; margin: 3rem auto;">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+            <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">Built for Educational Excellence</h2>
+            <p style="color: var(--text-secondary);">Designed to give Computer Science students deep intuitive understanding</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3 class="feature-title">Character-Level Lexer</h3>
+                <p class="feature-desc">See raw character streams converted into categorized tokens with exact line and column location metadata.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌳</div>
+                <h3 class="feature-title">Interactive SVG AST</h3>
+                <p class="feature-desc">Explore fully interactive Abstract Syntax Trees with zoom, pan, node selection, and immediate source code highlighting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Three-Address Code (TAC)</h3>
+                <p class="feature-desc">Observe high-level expressions simplified into quadruples with temporaries (t1, t2) and conditional jump labels (L1, L2).</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎮</div>
+                <h3 class="feature-title">Step-by-Step CPU Debugger</h3>
+                <p class="feature-desc">Control virtual machine execution with Play, Pause, Step Forward, and Reset buttons while inspecting live memory state.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <h3 class="feature-title">Source-Code Connection</h3>
+                <p class="feature-desc">Click any token, AST node, or IR instruction to highlight its exact corresponding origin in the source code editor.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚠️</div>
+                <h3 class="feature-title">Rich Error Pointer</h3>
+                <p class="feature-desc">Friendly error handling identifying exact phase failure (Lexical, Syntax, Semantic, or Runtime) with beginner-friendly hints.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 2.5rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem;">
+        <p>Inside the Compiler: A Step-by-Step Execution Story &copy; 2026. Built for University Compiler Laboratory Courses.</p>
+    </footer>
+
+</body>
+</html>
