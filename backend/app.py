@@ -14,7 +14,13 @@ from backend.ir.generator import TACGenerator
 from backend.executor.interpreter import StepInterpreter
 from backend.errors.compiler_errors import CompilerError
 
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.abspath(os.path.join(BASE_DIR, '../templates'))
+static_dir = os.path.abspath(os.path.join(BASE_DIR, '../static'))
+
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 CORS(app)
 
 
