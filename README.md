@@ -2,7 +2,7 @@
 
 > **"From Code to Execution — See Every Step."**
 > 
-> *"Don't hide the compiler. Show the compiler thinking."*
+> *Created & Developed by **Md Mursalin** | Interactive Educational Virtual Compiler Laboratory*
 
 ---
 
@@ -351,6 +351,7 @@ Inside-the-compiler/
 
 ## 12. Author & Course Info
 
+- **Creator / Developer**: **Md Mursalin**
 - **Course**: Compiler Laboratory (8th Semester, Computer Science & Engineering)
 - **Project Title**: Inside the Compiler: A Step-by-Step Execution Story
 - **GitHub Repository**: [https://github.com/Mursalin2111/Inside-the-compiler.git](https://github.com/Mursalin2111/Inside-the-compiler.git)
